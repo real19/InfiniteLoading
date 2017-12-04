@@ -54,7 +54,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     var totalItems:Int = 0
     
-    var fetchSize = 20
+    var fetchSize = 40
     
     /// We store all ongoing tasks here to avoid duplicating tasks.
     fileprivate var tasks = [URLSessionTask]()
@@ -108,7 +108,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             if let image =  booksArray[indexPath.row].image {
                 cell.bookImageView?.image = image
             } else {
-                cell.bookImageView?.image = nil
+                cell.bookImageView?.image = UIImage(named: "cover")
                 self.downloadImage(forItemAtIndex: indexPath.row)
             }
             
