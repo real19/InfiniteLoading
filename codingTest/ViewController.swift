@@ -8,7 +8,6 @@
 
 import UIKit
 
-
 struct Key {
     
     static let TotalItems = "totalItems"
@@ -19,30 +18,13 @@ struct Key {
     static let ImageLinks = "imageLinks"
     static let Thumbnail = "thumbnail"
     static let SmallThumbnail = "smallThumbnail"
+    static let Description = "description"
     
 }
-
-
-struct Book {
-    
-    var title:String
-    var author:String
-    var selfLink:String
-    var thumbnailURL:String
-    var smallThumbnailURL:String
-    lazy var url: URL = {
-        // I know it's unsafe.
-        return URL(string: self.smallThumbnailURL)!
-    }()
-    var image: UIImage?
-}
-
 
 
 
 let YOUR_API_KEY = "AIzaSyAidSLvx-64rN90VBRfRGShhF5FsML68gg"
-
-
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching {
     
@@ -50,15 +32,21 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     var lastBookFound:Int = 0
     
-    var booksArray:[Book] =  [Book]()
+    var booksArray:[Book] =  [Book]() {
+        didSet{
+           
+        }
+    }
     
     var totalItems:Int = 0
     
     var fetchSize = 40
     
+    var isLoading = false
+    
+    
     /// We store all ongoing tasks here to avoid duplicating tasks.
     fileprivate var tasks = [URLSessionTask]()
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -67,14 +55,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         tableView.prefetchDataSource = self
         
         loadBooks()
-        // Do any additional setup after loading the view, typically from a nib.
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
+
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if (indexPath.row < self.booksArray.count - 1){
             
@@ -82,7 +69,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             if (booksArray.count != 0){
                 loadBooks()
             }
-            
         }
     }
     
@@ -104,6 +90,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             let book = booksArray[indexPath.row]
             
             cell.bookTitle?.text = book.title
+            cell.bookAuthor?.text = book.author
+            cell.bookDescription?.text = book.description
             
             if let image =  booksArray[indexPath.row].image {
                 cell.bookImageView?.image = image
@@ -119,27 +107,31 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             let cell = tableView.dequeueReusableCell(withIdentifier: "loadingCell", for: indexPath)
 
             let ai = cell.viewWithTag(999) as! UIActivityIndicatorView
-            
             ai.startAnimating()
-            
             return cell
         }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 110
+        return 220
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         //
     }
-    
-    
-    
+
+
     func loadBooks(){
         
-        lastBookFound = booksArray.count
+        if isLoading == true {
+            return
+        } else {
+            isLoading = true
+        }
         
+        
+        
+        lastBookFound = booksArray.count
         
         guard let url = URL(string:"https://www.googleapis.com/books/v1/volumes?q=Rashad+khalifa&maxResults=\(fetchSize)&startIndex=\(lastBookFound)&fields=items(id%2CselfLink%2CvolumeInfo(authors%2CaverageRating%2Cdescription%2CimageLinks%2Ctitle))%2CtotalItems&key=\(YOUR_API_KEY)") else {
             return
@@ -155,6 +147,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 
                 let json = try JSON(data: data)
                 
+                print(json)
                 
                 if let total = json[Key.TotalItems].number {
                     
@@ -165,25 +158,31 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 
                 self?.addBooksFrom(json: json)
                 
-                DispatchQueue.main.async(execute: {
-
-                    self?.tableView.reloadData()
-                })
-             
+               self?.isLoading = false
+               
     
         } catch let error as NSError {
             print(error.debugDescription)
         }
-        
-        
     }
     
     task.resume()
-    
+
 }
+    
+    func loadMorePaths()->[IndexPath]{
+        var paths = [IndexPath]()
+        for row in (booksArray.count) ..< (booksArray.count + fetchSize)
+        {
+            paths.append(IndexPath(row: row - 1 , section: 0))
+        }
+        return paths
+    }
 
 
 func addBooksFrom(json:JSON){
+    
+    var newBooks = [Book]()
     
     if let items = json["items"].array {
         
@@ -192,15 +191,37 @@ func addBooksFrom(json:JSON){
             if let title = item[Key.VolumeInfo][Key.Title].string,
                 let author = item[Key.VolumeInfo][Key.Authors][0].string,
                 let selfLink = item[Key.SelfLink].string,
+                let description = item[Key.VolumeInfo][Key.Description].string,
                 let thumbnailURL = item[Key.VolumeInfo][Key.Title].string,
                 let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string {
                 
-                let book:Book =  Book(title: title, author: author, selfLink: selfLink, thumbnailURL: thumbnailURL, smallThumbnailURL: smallThumbnailURL, url: nil, image: nil)
+                let book:Book =  Book(title: title, author: author, description: description, selfLink: selfLink, thumbnailURL: thumbnailURL, smallThumbnailURL: smallThumbnailURL, url: nil, image: nil)
                 
-                booksArray.append(book)
+                newBooks.append(book)
                 
             }
+            
+            
         }
+
+        if (newBooks.count == 0 ){
+            return
+        }
+        
+        var paths = [IndexPath]()
+        for row in (booksArray.count) ..< (booksArray.count + newBooks.count)
+        {
+            paths.append(IndexPath(row: row - 1 , section: 0))
+        }
+        
+        booksArray.append(contentsOf: newBooks)
+        
+        OperationQueue.main.addOperation {
+            self.tableView.beginUpdates()
+            self.tableView.insertRows(at: paths, with: .none)
+            self.tableView.endUpdates()
+        }
+        
     }
 }
 
@@ -231,10 +252,11 @@ fileprivate func downloadImage(forItemAtIndex index: Int) {
             return
         }
         let task = URLSession.shared.dataTask(with: url) { [weak self] (data, response, error) in
-            DispatchQueue.main.async {
+       
                 if let data = data, let image = UIImage(data: data) {
                     self?.booksArray[index].image = image
                     let indexPath = IndexPath(row: index, section: 0)
+                DispatchQueue.main.async {
                     if self?.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
                         self?.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
                     }
@@ -256,8 +278,8 @@ fileprivate func cancelDownloadingImage(forItemAtIndex index: Int) {
         let task = tasks[taskIndex]
         task.cancel()
         tasks.remove(at: taskIndex)
+        }
     }
-}
 }
 
 

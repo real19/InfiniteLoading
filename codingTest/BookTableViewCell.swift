@@ -12,6 +12,8 @@ class BookTableViewCell: UITableViewCell {
     
     @IBOutlet var bookImageView: UIImageView?
     @IBOutlet var bookTitle: UILabel?
+    @IBOutlet var bookAuthor: UILabel?
+    @IBOutlet var bookDescription: UILabel?
 
     override func awakeFromNib() {
         super.awakeFromNib()
