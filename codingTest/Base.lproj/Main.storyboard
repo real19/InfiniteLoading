@@ -14,7 +14,7 @@
         <!--Books-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="codingTest" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="ViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="BYZ-38-t0r" customClass="ViewController" customModule="codingTest" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -89,7 +89,6 @@
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
                         <outlet property="tableView" destination="Zp9-5g-TCT" id="ocj-qV-mFg"/>
-                        <segue destination="YOX-CV-wPa" kind="show" identifier="showDetail" action="showDetailViewController:sender:" id="U9Q-TR-1AM"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -99,7 +98,7 @@
         <!--Book View Controller-->
         <scene sceneID="Ihc-oH-e0k">
             <objects>
-                <viewController id="YOX-CV-wPa" customClass="BookViewController" customModule="codingTest" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="BookViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="YOX-CV-wPa" customClass="BookViewController" customModule="codingTest" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="tao-xx-h1U">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -120,15 +119,18 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f9R-ZU-GYz">
-                                        <rect key="frame" x="62" y="1302" width="250" height="17"/>
+                                        <rect key="frame" x="62" y="436" width="250" height="84"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="84" id="UaY-ue-zxr"/>
+                                        </constraints>
                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                         <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="top" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" numberOfLines="0" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="H9m-sI-L0s">
-                                        <rect key="frame" x="62" y="417" width="250" height="183"/>
+                                        <rect key="frame" x="62" y="417" width="250" height="559"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="183" id="hY1-Ii-RVl"/>
+                                            <constraint firstAttribute="height" constant="559" id="hY1-Ii-RVl"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                         <nil key="textColor"/>
@@ -136,7 +138,7 @@
                                     </label>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstAttribute="bottom" secondItem="f9R-ZU-GYz" secondAttribute="bottom" constant="71" id="3B0-HE-Q1W"/>
+                                    <constraint firstItem="f9R-ZU-GYz" firstAttribute="top" secondItem="SGG-Uh-4Je" secondAttribute="bottom" constant="47" id="KSF-GT-8x6"/>
                                     <constraint firstItem="nUL-NP-EBr" firstAttribute="leading" secondItem="H9m-sI-L0s" secondAttribute="leading" id="N95-nM-VjL"/>
                                     <constraint firstItem="nUL-NP-EBr" firstAttribute="leading" secondItem="f9R-ZU-GYz" secondAttribute="leading" id="Nww-oB-rQp"/>
                                     <constraint firstAttribute="bottom" secondItem="nUL-NP-EBr" secondAttribute="bottom" constant="1047" id="SEE-wB-w0h"/>

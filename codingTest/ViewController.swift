@@ -127,7 +127,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         if let book =  self.booksArray[indexPath.row] as Book?{
             
-            performSegue(withIdentifier: "showDetail", sender: book)
+            if let bookViewController = storyboard?.instantiateViewController(withIdentifier: "BookViewController") as!  BookViewController?{
+                
+                bookViewController.book = book
+                
+                navigationController?.pushViewController(bookViewController, animated: true)
+                
+            }
+            
+            
             
         }
     }

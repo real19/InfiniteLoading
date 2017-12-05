@@ -23,6 +23,10 @@ class BookViewController: UIViewController {
         
         navigationController?.navigationBar.isHidden = false
         
+        navigationItem.largeTitleDisplayMode = .never
+        
+       
+        
         guard let book = book else {
             return
         }
@@ -33,6 +37,8 @@ class BookViewController: UIViewController {
         }
         
         bookTitleLabel?.text = book.title
+        
+         navigationItem.title =  book.title
         
         bookAuthorLabel?.text = book.author
 
