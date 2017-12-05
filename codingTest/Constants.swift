@@ -1,0 +1,26 @@
+//
+//  Constants.swift
+//  codingTest
+//
+//  Created by Suleman Imdad on 12/4/17.
+//  Copyright © 2017 Suleman Imdad. All rights reserved.
+//
+
+import Foundation
+
+
+struct Constant {
+    
+    static let TotalItems = "totalItems"
+    static let SelfLink = "selfLink"
+    static let VolumeInfo = "volumeInfo"
+    static let Title = "title"
+    static let Authors = "authors"
+    static let ImageLinks = "imageLinks"
+    static let Thumbnail = "thumbnail"
+    static let SmallThumbnail = "smallThumbnail"
+    static let Description = "description"
+    static let Items = "items"
+    
+}
+

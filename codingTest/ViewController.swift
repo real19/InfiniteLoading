@@ -27,7 +27,7 @@ struct Key {
 let YOUR_API_KEY = "AIzaSyAidSLvx-64rN90VBRfRGShhF5FsML68gg"
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching , UISearchResultsUpdating , UISearchBarDelegate{
-
+    
     
     @IBOutlet weak var tableView:UITableView!
     
@@ -35,7 +35,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     var booksArray:[Book] =  [Book]() {
         didSet{
-           
+            
         }
     }
     
@@ -50,7 +50,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     /// We store all ongoing tasks here to avoid duplicating tasks.
     fileprivate var tasks = [URLSessionTask]()
     
-    var searchString:String = "Make-up"
+    var searchString:String = ""
+    
+     // MARK: - VIEW LIFECYCLE
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,7 +71,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search Books"
- 
+        
         navigationItem.searchController = searchController
         definesPresentationContext = true
         
@@ -83,13 +85,12 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         loadBooks()
     }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
 
-
+    
+    
+     // MARK: - TABLEVIEW DATASOURCE
+    
+    
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -98,6 +99,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         return booksArray.count
     }
     
+    // MARK: - TABLEVIEW DELEGATE
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
@@ -116,7 +118,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             } else {
                 cell.bookImageView?.image = UIImage(named: "cover")
                 self.downloadImage(forItemAtIndex: indexPath.row, completion: { (image) in
-                     cell.bookImageView?.image = image
+                    cell.bookImageView?.image = image
                 })
             }
             
@@ -125,7 +127,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         else
         {
             let cell = tableView.dequeueReusableCell(withIdentifier: "loadingCell", for: indexPath)
-
+            
             let ai = cell.viewWithTag(999) as! UIActivityIndicatorView
             ai.startAnimating()
             loadBooks()
@@ -140,8 +142,35 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         //
     }
-
-
+    
+    // MARK: - TABLEVIEW PREFETCH
+    
+    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+        //print("prefetchRowsAt \(indexPaths)")
+        indexPaths.forEach {
+            
+            self.downloadImage(forItemAtIndex: $0.row, completion: nil)
+            
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
+        // print("cancelPrefetchingForRowsAt \(indexPaths)")
+        indexPaths.forEach {
+            self.cancelDownloadingImage(forItemAtIndex: $0.row)
+            
+        }
+    }
+    
+    // MARK: - MISCELLANEOUS
+    
+    
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+    }
+    
+     // MARK: - BOOK LOADING
+    
     func loadBooks(){
         
         if isLoading == true {
@@ -149,9 +178,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         } else {
             isLoading = true
         }
-        
-        
-        ;
         
         let queryString = searchString.replacingOccurrences(of: " ", with: "+")
         
@@ -178,138 +204,114 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 
                 self.addBooksFrom(json: json)
                 
-               self.isLoading = false
-               
-    
-        } catch let error as NSError {
-            print(error.localizedDescription)
-        }
-    }
-    
-    task.resume()
-
-}
-
-    func synchronized( lock:AnyObject, block:() throws -> Void ) rethrows
-    {
-        objc_sync_enter(lock)
-        defer {
-            objc_sync_exit(lock)
-        }
-        
-        try block()
-    }
-
-
-func addBooksFrom(json:JSON){
-    
-    var newBooks = [Book]()
-    
-    if let items = json["items"].array {
-        
-        for item in items {
-            
-            if let title = item[Key.VolumeInfo][Key.Title].string,
-                let author = item[Key.VolumeInfo][Key.Authors][0].string,
-                let selfLink = item[Key.SelfLink].string,
-                let description = item[Key.VolumeInfo][Key.Description].string,
-            let thumbnailURL = item[Key.VolumeInfo][Key.Title].string,
-            let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string{
+                self.isLoading = false
                 
                 
-                
-                let book:Book =  Book(title: title, author: author, description: description, selfLink: selfLink, thumbnailURL: thumbnailURL, smallThumbnailURL: smallThumbnailURL, url: nil, image: nil)
-                
-                newBooks.append(book)
-                
+            } catch let error as NSError {
+                print(error.localizedDescription)
             }
         }
-
-        if (newBooks.count == 0 ){
-            return
-        }
         
-        var paths = [IndexPath]()
-        for row in (booksArray.count) ..< (booksArray.count + newBooks.count)
-        {
-            paths.append(IndexPath(row: row - 1 , section: 0))
-        }
-        
-        print("new books are found : \(newBooks.count)")
-        booksArray.append(contentsOf: newBooks)
-        
-        counter = counter + fetchSize
-        
-        OperationQueue.main.addOperation {
-            self.tableView.beginUpdates()
-            self.tableView.insertRows(at: paths, with: .top)
-            self.tableView.endUpdates()
-        }
+        task.resume()
         
     }
-}
-
-func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
-    //print("prefetchRowsAt \(indexPaths)")
-    indexPaths.forEach {
-        
-        self.downloadImage(forItemAtIndex: $0.row, completion: nil)
-        
-    }
- }
-
-func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
-   // print("cancelPrefetchingForRowsAt \(indexPaths)")
-    indexPaths.forEach {
-        self.cancelDownloadingImage(forItemAtIndex: $0.row)
-        
-    }
-}
-
-// MARK: - Image downloading
-
-    fileprivate func downloadImage(forItemAtIndex index: Int, completion:((UIImage)->())?) {
     
-    if (index < booksArray.count) {
+    func addBooksFrom(json:JSON){
         
-        var book = booksArray[index]
+        var newBooks = [Book]()
         
-      
-        let task = URLSession.shared.dataTask(with: book.url) { (data, response, error) in
-       
+        if let items = json["items"].array {
+            
+            for item in items {
+                
+                if let title = item[Key.VolumeInfo][Key.Title].string,
+                    let author = item[Key.VolumeInfo][Key.Authors][0].string,
+                    let selfLink = item[Key.SelfLink].string,
+                    let description = item[Key.VolumeInfo][Key.Description].string,
+                    let thumbnailURL = item[Key.VolumeInfo][Key.Title].string,
+                    let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string{
+                    
+                    
+                    
+                    let book:Book =  Book(title: title, author: author, description: description, selfLink: selfLink, thumbnailURL: thumbnailURL, smallThumbnailURL: smallThumbnailURL, url: nil, image: nil)
+                    
+                    newBooks.append(book)
+                    
+                }
+            }
+            
+            if (newBooks.count == 0 ){
+                return
+            }
+            
+            var paths = [IndexPath]()
+            for row in (booksArray.count) ..< (booksArray.count + newBooks.count)
+            {
+                paths.append(IndexPath(row: row - 1 , section: 0))
+            }
+            
+            print("new books are found : \(newBooks.count)")
+            booksArray.append(contentsOf: newBooks)
+            
+            counter = counter + fetchSize
+            
+            OperationQueue.main.addOperation {
+                self.tableView.beginUpdates()
+                self.tableView.insertRows(at: paths, with: .top)
+                self.tableView.endUpdates()
+            }
+            
+        }
+    }
+    
+  
+    
+    // MARK: - IMAGE LOADING
+    
+    fileprivate func downloadImage(forItemAtIndex index: Int, completion:((UIImage)->())?) {
+        
+        if (index < booksArray.count) {
+            
+            var book = booksArray[index]
+            
+            
+            let task = URLSession.shared.dataTask(with: book.url) { (data, response, error) in
+                
                 if let data = data, let image = UIImage(data: data) {
                     self.booksArray[index].image = image
                     let indexPath = IndexPath(row: index, section: 0)
-                DispatchQueue.main.async {
-                    if self.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
-                        self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
+                    DispatchQueue.main.async {
+                        if self.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
+                            self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
+                        }
                     }
                 }
             }
-        }
-        task.resume()
-        tasks.append(task)
-    }
-}
-
-fileprivate func cancelDownloadingImage(forItemAtIndex index: Int) {
-    
-    if (index < booksArray.count) {
-        let url = booksArray[index].url
-        guard let taskIndex = tasks.index(where: { $0.originalRequest?.url == url }) else {
-            return
-        }
-        let task = tasks[taskIndex]
-        task.cancel()
-        tasks.remove(at: taskIndex)
+            task.resume()
+            tasks.append(task)
         }
     }
     
+    fileprivate func cancelDownloadingImage(forItemAtIndex index: Int) {
+        
+        if (index < booksArray.count) {
+            let url = booksArray[index].url
+            guard let taskIndex = tasks.index(where: { $0.originalRequest?.url == url }) else {
+                return
+            }
+            let task = tasks[taskIndex]
+            task.cancel()
+            tasks.remove(at: taskIndex)
+        }
+    }
+    
+    
+      // MARK: - SEARCH CONTROLLER
     
     func updateSearchResults(for searchController: UISearchController) {
         
-       
-         searchString =  searchController.searchBar.text ?? ""
+        
+        searchString =  searchController.searchBar.text ?? ""
         
         
     }
@@ -317,17 +319,17 @@ fileprivate func cancelDownloadingImage(forItemAtIndex index: Int) {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
-      booksArray = [Book]()
-     
-      counter = 0
+        booksArray = [Book]()
         
-      totalItems = 0
+        counter = 0
         
-      isLoading = false
+        totalItems = 0
         
-      tableView.reloadData()
-     
-      loadBooks()
+        isLoading = false
+        
+        tableView.reloadData()
+        
+        loadBooks()
         
     }
     
