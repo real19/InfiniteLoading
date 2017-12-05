@@ -97,7 +97,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 cell.bookImageView?.image = image
             } else {
                 cell.bookImageView?.image = UIImage(named: "cover")
-                self.downloadImage(forItemAtIndex: indexPath.row)
+                self.downloadImage(forItemAtIndex: indexPath.row, completion: { (image) in
+                     cell.bookImageView?.image = image
+                })
             }
             
             return cell
@@ -147,8 +149,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 
                 let json = try JSON(data: data)
                 
-                print(json)
-                
                 if let total = json[Key.TotalItems].number {
                     
                     self?.totalItems = Int(truncating: total)
@@ -162,7 +162,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                
     
         } catch let error as NSError {
-            print(error.debugDescription)
+            print(error.localizedDescription)
         }
     }
     
@@ -200,8 +200,6 @@ func addBooksFrom(json:JSON){
                 newBooks.append(book)
                 
             }
-            
-            
         }
 
         if (newBooks.count == 0 ){
@@ -226,18 +224,25 @@ func addBooksFrom(json:JSON){
 }
 
 func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
-    print("prefetchRowsAt \(indexPaths)")
-    indexPaths.forEach { self.downloadImage(forItemAtIndex: $0.row) }
-}
+    //print("prefetchRowsAt \(indexPaths)")
+    indexPaths.forEach {
+        
+        self.downloadImage(forItemAtIndex: $0.row, completion: nil)
+        
+    }
+ }
 
 func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
-    print("cancelPrefetchingForRowsAt \(indexPaths)")
-    indexPaths.forEach { self.cancelDownloadingImage(forItemAtIndex: $0.row) }
+   // print("cancelPrefetchingForRowsAt \(indexPaths)")
+    indexPaths.forEach {
+        self.cancelDownloadingImage(forItemAtIndex: $0.row)
+        
+    }
 }
 
 // MARK: - Image downloading
 
-fileprivate func downloadImage(forItemAtIndex index: Int) {
+    fileprivate func downloadImage(forItemAtIndex index: Int, completion:((UIImage)->())?) {
     
     if (index < booksArray.count) {
         
