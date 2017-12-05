@@ -14,12 +14,15 @@ struct Book {
     
     var title:String
     var author:String
-    var description:String
+    var description:String?
     var selfLink:String
-    var thumbnailURL:String
-    var smallThumbnailURL:String
+    var thumbnailURL:String?
+    var smallThumbnailURL:String?
     lazy var url: URL = {
-        return URL(string: self.smallThumbnailURL)!
+        if (self.smallThumbnailURL != nil){
+            return URL(string: self.smallThumbnailURL!)!
+        }
+        return URL(string: "cover")!
     }()
     var image: UIImage?
 }

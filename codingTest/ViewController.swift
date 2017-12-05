@@ -44,6 +44,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     var isLoading = false
     
+    var counter = 0
     
     /// We store all ongoing tasks here to avoid duplicating tasks.
     fileprivate var tasks = [URLSessionTask]()
@@ -62,16 +63,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
 
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if (indexPath.row < self.booksArray.count - 1){
-            
-        } else {
-            if (booksArray.count != 0){
-                loadBooks()
-            }
-        }
-    }
-    
+
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -89,7 +81,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             
             let book = booksArray[indexPath.row]
             
-            cell.bookTitle?.text = book.title
+            cell.bookTitle?.text = "\(indexPath.row + 1 )" + ". " + book.title
             cell.bookAuthor?.text = book.author
             cell.bookDescription?.text = book.description
             
@@ -110,6 +102,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
 
             let ai = cell.viewWithTag(999) as! UIActivityIndicatorView
             ai.startAnimating()
+            loadBooks()
             return cell
         }
     }
@@ -133,14 +126,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         
         
-        lastBookFound = booksArray.count
-        
-        guard let url = URL(string:"https://www.googleapis.com/books/v1/volumes?q=Rashad+khalifa&maxResults=\(fetchSize)&startIndex=\(lastBookFound)&fields=items(id%2CselfLink%2CvolumeInfo(authors%2CaverageRating%2Cdescription%2CimageLinks%2Ctitle))%2CtotalItems&key=\(YOUR_API_KEY)") else {
+        guard let url = URL(string:"https://www.googleapis.com/books/v1/volumes?q=Rashad+khalifa&maxResults=\(fetchSize)&startIndex=\(counter)&fields=items(id%2CselfLink%2CvolumeInfo(authors%2CaverageRating%2Cdescription%2CimageLinks%2Ctitle))%2CtotalItems&key=\(YOUR_API_KEY)") else {
             return
         }
         
+        print("url is \(url)")
         
-        let task = URLSession.shared.dataTask(with: url) {[weak self] (data, response, error) in
+        let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
             
             do {
                 guard let data = data else {
@@ -151,14 +143,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 
                 if let total = json[Key.TotalItems].number {
                     
-                    self?.totalItems = Int(truncating: total)
+                    self.totalItems = Int(truncating: total)
                     
-                    print("Total items are \(String(describing: self?.totalItems))")
                 }
                 
-                self?.addBooksFrom(json: json)
+                self.addBooksFrom(json: json)
                 
-               self?.isLoading = false
+               self.isLoading = false
                
     
         } catch let error as NSError {
@@ -169,14 +160,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     task.resume()
 
 }
-    
-    func loadMorePaths()->[IndexPath]{
-        var paths = [IndexPath]()
-        for row in (booksArray.count) ..< (booksArray.count + fetchSize)
-        {
-            paths.append(IndexPath(row: row - 1 , section: 0))
+
+    func synchronized( lock:AnyObject, block:() throws -> Void ) rethrows
+    {
+        objc_sync_enter(lock)
+        defer {
+            objc_sync_exit(lock)
         }
-        return paths
+        
+        try block()
     }
 
 
@@ -192,8 +184,10 @@ func addBooksFrom(json:JSON){
                 let author = item[Key.VolumeInfo][Key.Authors][0].string,
                 let selfLink = item[Key.SelfLink].string,
                 let description = item[Key.VolumeInfo][Key.Description].string,
-                let thumbnailURL = item[Key.VolumeInfo][Key.Title].string,
-                let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string {
+            let thumbnailURL = item[Key.VolumeInfo][Key.Title].string,
+            let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string{
+                
+                
                 
                 let book:Book =  Book(title: title, author: author, description: description, selfLink: selfLink, thumbnailURL: thumbnailURL, smallThumbnailURL: smallThumbnailURL, url: nil, image: nil)
                 
@@ -212,11 +206,14 @@ func addBooksFrom(json:JSON){
             paths.append(IndexPath(row: row - 1 , section: 0))
         }
         
+        print("new books are found : \(newBooks.count)")
         booksArray.append(contentsOf: newBooks)
+        
+        counter = counter + fetchSize
         
         OperationQueue.main.addOperation {
             self.tableView.beginUpdates()
-            self.tableView.insertRows(at: paths, with: .none)
+            self.tableView.insertRows(at: paths, with: .top)
             self.tableView.endUpdates()
         }
         
@@ -246,24 +243,17 @@ func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: 
     
     if (index < booksArray.count) {
         
-        let book = booksArray[index]
+        var book = booksArray[index]
         
-        guard let url = URL(string: book.smallThumbnailURL) else {
-            return
-        }
-        
-        guard tasks.index(where: { $0.originalRequest?.url == url }) == nil else {
-            // We're already downloading the image.
-            return
-        }
-        let task = URLSession.shared.dataTask(with: url) { [weak self] (data, response, error) in
+      
+        let task = URLSession.shared.dataTask(with: book.url) { (data, response, error) in
        
                 if let data = data, let image = UIImage(data: data) {
-                    self?.booksArray[index].image = image
+                    self.booksArray[index].image = image
                     let indexPath = IndexPath(row: index, section: 0)
                 DispatchQueue.main.async {
-                    if self?.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
-                        self?.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
+                    if self.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
+                        self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
                     }
                 }
             }
