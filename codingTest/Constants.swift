@@ -9,7 +9,7 @@
 import Foundation
 
 //Google Books API Key Here:
-let YOUR_API_KEY = "AIzaSyAidSLvx-64rN90VBRfRGShhF5FsML68gg"
+let YOUR_API_KEY = "Enter-your-api-key-here-"
 
 struct Constant {
     
