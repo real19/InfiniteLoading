@@ -26,7 +26,8 @@ struct Key {
 
 let YOUR_API_KEY = "AIzaSyAidSLvx-64rN90VBRfRGShhF5FsML68gg"
 
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching , UISearchResultsUpdating , UISearchBarDelegate{
+
     
     @IBOutlet weak var tableView:UITableView!
     
@@ -49,11 +50,36 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     /// We store all ongoing tasks here to avoid duplicating tasks.
     fileprivate var tasks = [URLSessionTask]()
     
+    var searchString:String = "Make-up"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
         tableView.prefetchDataSource = self
+        
+        
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        let searchController = UISearchController(searchResultsController: nil)
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        
+        // Setup the Search Controller
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search Books"
+ 
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
+        
+        // Set any properties (in this case, don't hide the nav bar and don't show the emoji keyboard option)
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.keyboardType = UIKeyboardType.asciiCapable
+        
+        // Make this class the delegate and present the search
+        searchController.searchBar.delegate = self
+        
         
         loadBooks()
     }
@@ -125,8 +151,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
         
         
+        ;
         
-        guard let url = URL(string:"https://www.googleapis.com/books/v1/volumes?q=Rashad+khalifa&maxResults=\(fetchSize)&startIndex=\(counter)&fields=items(id%2CselfLink%2CvolumeInfo(authors%2CaverageRating%2Cdescription%2CimageLinks%2Ctitle))%2CtotalItems&key=\(YOUR_API_KEY)") else {
+        let queryString = searchString.replacingOccurrences(of: " ", with: "+")
+        
+        guard let url = URL(string:"https://www.googleapis.com/books/v1/volumes?q=\(String(describing: queryString))&maxResults=\(fetchSize)&startIndex=\(counter)&fields=items(id%2CselfLink%2CvolumeInfo(authors%2CaverageRating%2Cdescription%2CimageLinks%2Ctitle))%2CtotalItems&key=\(YOUR_API_KEY)") else {
             return
         }
         
@@ -275,6 +304,33 @@ fileprivate func cancelDownloadingImage(forItemAtIndex index: Int) {
         tasks.remove(at: taskIndex)
         }
     }
+    
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        
+       
+         searchString =  searchController.searchBar.text ?? ""
+        
+        
+    }
+    
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+      booksArray = [Book]()
+     
+      counter = 0
+        
+      totalItems = 0
+        
+      isLoading = false
+        
+      tableView.reloadData()
+     
+      loadBooks()
+        
+    }
+    
 }
 
 
