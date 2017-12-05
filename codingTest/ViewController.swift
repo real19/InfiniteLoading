@@ -8,21 +8,6 @@
 
 import UIKit
 
-struct Key {
-    
-    static let TotalItems = "totalItems"
-    static let SelfLink = "selfLink"
-    static let VolumeInfo = "volumeInfo"
-    static let Title = "title"
-    static let Authors = "authors"
-    static let ImageLinks = "imageLinks"
-    static let Thumbnail = "thumbnail"
-    static let SmallThumbnail = "smallThumbnail"
-    static let Description = "description"
-    
-}
-
-
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching , UISearchResultsUpdating , UISearchBarDelegate{
     
@@ -33,7 +18,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     var booksArray:[Book] =  [Book]() {
         didSet{
-            
+            if (booksArray.count == 0) {
+                
+                tableView.separatorStyle = .none
+                
+            } else {
+                
+                tableView.separatorStyle = .singleLine
+            }
         }
     }
     
@@ -191,6 +183,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         // Make this class the delegate and present the search
         searchController.searchBar.delegate = self
         
+        searchController.searchBar.tintColor = .black
+        
         
     }
     
@@ -242,7 +236,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 
                 let json = try JSON(data: data)
                 
-                if let total = json[Key.TotalItems].number {
+                if let total = json[Constant.TotalItems].number {
                     
                     self.totalItems = Int(truncating: total)
                     
@@ -271,17 +265,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             
             for item in items {
                 
-                if let title = item[Key.VolumeInfo][Key.Title].string,
+                if let title = item[Constant.VolumeInfo][Constant.Title].string,
                     
-                    let author = item[Key.VolumeInfo][Key.Authors][0].string,
+                    let author = item[Constant.VolumeInfo][Constant.Authors][0].string,
                     
-                    let selfLink = item[Key.SelfLink].string,
+                    let selfLink = item[Constant.SelfLink].string,
                     
-                    let description = item[Key.VolumeInfo][Key.Description].string,
+                    let description = item[Constant.VolumeInfo][Constant.Description].string,
                     
-                    let thumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.Thumbnail].string,
+                    let thumbnailURL = item[Constant.VolumeInfo][Constant.ImageLinks][Constant.Thumbnail].string,
                     
-                    let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string{
+                    let smallThumbnailURL = item[Constant.VolumeInfo][Constant.ImageLinks][Constant.SmallThumbnail].string{
                     
                     
                     

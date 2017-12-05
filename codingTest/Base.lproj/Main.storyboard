@@ -72,11 +72,15 @@
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="112"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <activityIndicatorView opaque="NO" tag="999" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="qyo-zA-K2M">
-                                                    <rect key="frame" x="177" y="45" width="20" height="20"/>
-                                                    <autoresizingMask key="autoresizingMask"/>
+                                                <activityIndicatorView opaque="NO" tag="999" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="qyo-zA-K2M">
+                                                    <rect key="frame" x="169" y="38" width="37" height="37"/>
+                                                    <color key="color" red="0.20013855750000001" green="0.78449634459999995" blue="0.31848492820000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                 </activityIndicatorView>
                                             </subviews>
+                                            <constraints>
+                                                <constraint firstItem="qyo-zA-K2M" firstAttribute="centerX" secondItem="dk1-Xk-zkc" secondAttribute="centerX" id="iY2-ey-gyW"/>
+                                                <constraint firstItem="qyo-zA-K2M" firstAttribute="centerY" secondItem="dk1-Xk-zkc" secondAttribute="centerY" id="u0J-0Y-rKc"/>
+                                            </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                 </prototypes>
@@ -179,6 +183,10 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jgg-VE-Our" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" id="Xli-bq-CcH">
+                    <rect key="frame" x="0.0" y="0.0" width="20" height="20"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                </activityIndicatorView>
             </objects>
             <point key="canvasLocation" x="1468" y="124.58770614692655"/>
         </scene>

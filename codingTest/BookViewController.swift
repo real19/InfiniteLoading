@@ -41,6 +41,8 @@ class BookViewController: UIViewController {
 
         bookDescriptionLabel?.text = book.description
         
+          navigationController?.navigationBar.tintColor = .black
+        
         
         // Do any additional setup after loading the view.
     }
