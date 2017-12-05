@@ -24,8 +24,6 @@ struct Key {
 
 
 
-let YOUR_API_KEY = "AIzaSyAidSLvx-64rN90VBRfRGShhF5FsML68gg"
-
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching , UISearchResultsUpdating , UISearchBarDelegate{
     
     
@@ -58,18 +56,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         super.viewDidLoad()
         
         tableView.delegate = self
+       
         tableView.dataSource = self
+        
         tableView.prefetchDataSource = self
         
         navigationController?.navigationBar.prefersLargeTitles = true
         
         setUpSearchController()
-        
-        searchString = "goat"
-        loadBooks()
     }
-
-    
     
      // MARK: - TABLEVIEW DATASOURCE
     
@@ -92,9 +87,12 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             
             let book = booksArray[indexPath.row]
             
-            cell.bookTitle?.text = "\(indexPath.row + 1 )" + ". " + book.title
-            cell.bookAuthor?.text = book.author
-            cell.bookDescription?.text = book.description
+            cell.bookTitleLabel?.text = "\(indexPath.row + 1 )" + ". " + book.title
+            
+            cell.bookAuthorLabel?.text = book.author
+            
+            cell.bookDescriptionLabel?.text = book.description
+            
             cell.accessoryType = .disclosureIndicator
             
             if let image =  booksArray[indexPath.row].image {
@@ -113,8 +111,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             let cell = tableView.dequeueReusableCell(withIdentifier: "loadingCell", for: indexPath)
             
             let ai = cell.viewWithTag(999) as! UIActivityIndicatorView
+          
             ai.startAnimating()
+            
             loadBooks()
+            
             return cell
         }
     }
@@ -134,9 +135,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 navigationController?.pushViewController(bookViewController, animated: true)
                 
             }
-            
-            
-            
         }
     }
     
@@ -157,6 +155,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
         // print("cancelPrefetchingForRowsAt \(indexPaths)")
         indexPaths.forEach {
+         
             self.cancelDownloadingImage(forItemAtIndex: $0.row)
             
         }
@@ -168,31 +167,42 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func setUpSearchController(){
         
         let searchController = UISearchController(searchResultsController: nil)
+        
         navigationItem.searchController = searchController
+        
         navigationItem.hidesSearchBarWhenScrolling = false
         
         // Setup the Search Controller
         searchController.searchResultsUpdater = self
+        
         searchController.obscuresBackgroundDuringPresentation = false
+        
         searchController.searchBar.placeholder = "Search Books"
         
         navigationItem.searchController = searchController
+        
         definesPresentationContext = true
         
         // Set any properties (in this case, don't hide the nav bar and don't show the emoji keyboard option)
         searchController.hidesNavigationBarDuringPresentation = false
+        
         searchController.searchBar.keyboardType = UIKeyboardType.asciiCapable
         
         // Make this class the delegate and present the search
         searchController.searchBar.delegate = self
+        
+        
     }
     
     override func didReceiveMemoryWarning() {
+       
         super.didReceiveMemoryWarning()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
         if segue.identifier == "showDetail" {
+        
             if let bookViewController = segue.destination as? BookViewController{
                 
                 if let book = sender as? Book{
@@ -244,6 +254,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 
                 
             } catch let error as NSError {
+               
                 print(error.localizedDescription)
             }
         }
@@ -261,10 +272,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             for item in items {
                 
                 if let title = item[Key.VolumeInfo][Key.Title].string,
+                    
                     let author = item[Key.VolumeInfo][Key.Authors][0].string,
+                    
                     let selfLink = item[Key.SelfLink].string,
+                    
                     let description = item[Key.VolumeInfo][Key.Description].string,
+                    
                     let thumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.Thumbnail].string,
+                    
                     let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string{
                     
                     
@@ -281,19 +297,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             }
             
             var paths = [IndexPath]()
+            
             for row in (booksArray.count) ..< (booksArray.count + newBooks.count)
             {
                 paths.append(IndexPath(row: row - 1 , section: 0))
             }
             
-            print("new books are found : \(newBooks.count)")
+           // print("new books are found : \(newBooks.count)")
+            
             booksArray.append(contentsOf: newBooks)
             
             counter = counter + fetchSize
             
             OperationQueue.main.addOperation {
+               
                 self.tableView.beginUpdates()
+              
                 self.tableView.insertRows(at: paths, with: .top)
+                
                 self.tableView.endUpdates()
             }
             
@@ -314,16 +335,22 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             let task = URLSession.shared.dataTask(with: book.url) { (data, response, error) in
                 
                 if let data = data, let image = UIImage(data: data) {
+                 
                     self.booksArray[index].image = image
+                    
                     let indexPath = IndexPath(row: index, section: 0)
+                    
                     DispatchQueue.main.async {
+                    
                         if self.tableView.indexPathsForVisibleRows?.contains(indexPath) ?? false {
+                          
                             self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
                         }
                     }
                 }
             }
             task.resume()
+          
             tasks.append(task)
         }
     }
@@ -331,12 +358,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     fileprivate func cancelDownloadingImage(forItemAtIndex index: Int) {
         
         if (index < booksArray.count) {
+            
             let url = booksArray[index].url
+            
             guard let taskIndex = tasks.index(where: { $0.originalRequest?.url == url }) else {
                 return
             }
             let task = tasks[taskIndex]
+          
             task.cancel()
+           
             tasks.remove(at: taskIndex)
         }
     }

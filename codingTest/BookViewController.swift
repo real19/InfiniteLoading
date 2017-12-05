@@ -31,10 +31,7 @@ class BookViewController: UIViewController {
             return
         }
         
-        if let url = URL(string:book.thumbnailURL!){
-            
-            downloadImage(url: url)
-        }
+        bookImageView?.image = book.image
         
         bookTitleLabel?.text = book.title
         
@@ -52,29 +49,5 @@ class BookViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    
-    func downloadImage(url:URL){
-        
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
-            
-            if let data = data, let image = UIImage(data: data) {
-                DispatchQueue.main.async {[weak self] in
-                    self?.bookImageView?.image = image
-                }
-            }
-        }
-        task.resume()
-    }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }

@@ -11,9 +11,12 @@ import UIKit
 class BookTableViewCell: UITableViewCell {
     
     @IBOutlet var bookImageView: UIImageView?
-    @IBOutlet var bookTitle: UILabel?
-    @IBOutlet var bookAuthor: UILabel?
-    @IBOutlet var bookDescription: UILabel?
+   
+    @IBOutlet var bookTitleLabel: UILabel?
+    
+    @IBOutlet var bookAuthorLabel: UILabel?
+    
+    @IBOutlet var bookDescriptionLabel: UILabel?
 
     override func awakeFromNib() {
         super.awakeFromNib()
