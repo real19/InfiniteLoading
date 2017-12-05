@@ -56,33 +56,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         tableView.delegate = self
         tableView.dataSource = self
         tableView.prefetchDataSource = self
         
-        
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        let searchController = UISearchController(searchResultsController: nil)
-        navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
+        setUpSearchController()
         
-        // Setup the Search Controller
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search Books"
-        
-        navigationItem.searchController = searchController
-        definesPresentationContext = true
-        
-        // Set any properties (in this case, don't hide the nav bar and don't show the emoji keyboard option)
-        searchController.hidesNavigationBarDuringPresentation = false
-        searchController.searchBar.keyboardType = UIKeyboardType.asciiCapable
-        
-        // Make this class the delegate and present the search
-        searchController.searchBar.delegate = self
-        
-        
+        searchString = "goat"
         loadBooks()
     }
 
@@ -112,6 +95,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             cell.bookTitle?.text = "\(indexPath.row + 1 )" + ". " + book.title
             cell.bookAuthor?.text = book.author
             cell.bookDescription?.text = book.description
+            cell.accessoryType = .disclosureIndicator
             
             if let image =  booksArray[indexPath.row].image {
                 cell.bookImageView?.image = image
@@ -140,8 +124,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        //
+        
+        if let book =  self.booksArray[indexPath.row] as Book?{
+            
+            performSegue(withIdentifier: "showDetail", sender: book)
+            
+        }
     }
+    
+    
+   
     
     // MARK: - TABLEVIEW PREFETCH
     
@@ -165,9 +157,45 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     // MARK: - MISCELLANEOUS
     
     
+    func setUpSearchController(){
+        
+        let searchController = UISearchController(searchResultsController: nil)
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        
+        // Setup the Search Controller
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search Books"
+        
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
+        
+        // Set any properties (in this case, don't hide the nav bar and don't show the emoji keyboard option)
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.keyboardType = UIKeyboardType.asciiCapable
+        
+        // Make this class the delegate and present the search
+        searchController.searchBar.delegate = self
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showDetail" {
+            if let bookViewController = segue.destination as? BookViewController{
+                
+                if let book = sender as? Book{
+                    
+                    bookViewController.book = book
+                }
+                
+            }
+        }
+    }
+    
     
      // MARK: - BOOK LOADING
     
@@ -228,7 +256,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                     let author = item[Key.VolumeInfo][Key.Authors][0].string,
                     let selfLink = item[Key.SelfLink].string,
                     let description = item[Key.VolumeInfo][Key.Description].string,
-                    let thumbnailURL = item[Key.VolumeInfo][Key.Title].string,
+                    let thumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.Thumbnail].string,
                     let smallThumbnailURL = item[Key.VolumeInfo][Key.ImageLinks][Key.SmallThumbnail].string{
                     
                     

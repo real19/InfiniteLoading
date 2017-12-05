@@ -21,11 +21,16 @@ class BookViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        navigationController?.navigationBar.isHidden = false
+        
         guard let book = book else {
             return
         }
         
-        bookImageView?.image = book.image
+        if let url = URL(string:book.thumbnailURL!){
+            
+            downloadImage(url: url)
+        }
         
         bookTitleLabel?.text = book.title
         
@@ -42,6 +47,19 @@ class BookViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    
+    func downloadImage(url:URL){
+        
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            
+            if let data = data, let image = UIImage(data: data) {
+                DispatchQueue.main.async {[weak self] in
+                    self?.bookImageView?.image = image
+                }
+            }
+        }
+        task.resume()
+    }
 
     /*
     // MARK: - Navigation
